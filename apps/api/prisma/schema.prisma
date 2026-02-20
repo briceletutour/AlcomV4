@@ -1,0 +1,736 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───
+
+enum UserRole {
+  SUPER_ADMIN
+  CEO
+  CFO
+  FINANCE_DIR
+  STATION_MANAGER
+  CHEF_PISTE
+  POMPISTE
+  LOGISTICS
+  DCO
+}
+
+enum Language {
+  FR
+  EN
+}
+
+enum FuelType {
+  ESSENCE
+  GASOIL
+  PETROLE
+}
+
+enum NozzleSide {
+  A
+  B
+}
+
+enum ShiftType {
+  MORNING
+  EVENING
+}
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+  LOCKED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum ExpenseStatus {
+  SUBMITTED
+  PENDING_MANAGER
+  PENDING_FINANCE
+  APPROVED
+  REJECTED
+  DISBURSED
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  UTILITIES
+  SUPPLIES
+  TRANSPORT
+  PERSONNEL
+  MISCELLANEOUS
+}
+
+enum SupplierCategory {
+  FUEL_SUPPLY
+  MAINTENANCE
+  UTILITIES
+  EQUIPMENT
+  OTHER
+}
+
+enum ApprovalAction {
+  APPROVE
+  REJECT
+}
+
+enum ApprovalEntityType {
+  INVOICE
+  EXPENSE
+}
+
+enum ReplenishmentStatus {
+  DRAFT
+  PENDING_VALIDATION
+  VALIDATED
+  ORDERED
+  COMPLETED
+}
+
+enum DeliveryStatus {
+  IN_PROGRESS
+  VALIDATED
+  DISPUTED
+}
+
+enum CompartmentStatus {
+  VALIDATED
+  DISPUTED
+}
+
+enum ChecklistItemStatus {
+  CONFORME
+  NON_CONFORME
+}
+
+enum ChecklistSubmissionStatus {
+  DRAFT
+  PENDING_VALIDATION
+  VALIDATED
+  REJECTED
+}
+
+enum PriceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MailPriority {
+  NORMAL
+  URGENT
+}
+
+enum MailStatus {
+  RECEIVED
+  IN_PROGRESS
+  RESPONDED
+  ARCHIVED
+}
+
+enum SlaState {
+  ON_TIME
+  DUE_SOON
+  OVERDUE
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DisbursementMethod {
+  PETTY_CASH
+  BANK_TRANSFER
+}
+
+// ─── MODELS ───
+
+model User {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String    @unique
+  passwordHash      String    @map("password_hash")
+  fullName          String    @map("full_name")
+  role              UserRole
+  language          Language  @default(FR)
+  isActive          Boolean   @default(true) @map("is_active")
+  assignedStationId String?   @map("assigned_station_id") @db.Uuid
+  lineManagerId     String?   @map("line_manager_id") @db.Uuid
+  lastLogin         DateTime? @map("last_login") @db.Timestamptz()
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz()
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Password Reset
+  passwordResetToken   String?   @map("password_reset_token")
+  passwordResetExpires DateTime? @map("password_reset_expires") @db.Timestamptz()
+
+  // Delegation
+  backupApproverId  String?   @map("backup_approver_id") @db.Uuid
+  delegationStart   DateTime? @map("delegation_start") @db.Timestamptz()
+  delegationEnd     DateTime? @map("delegation_end") @db.Timestamptz()
+
+  // Relations
+  assignedStation Station?  @relation("StationUsers", fields: [assignedStationId], references: [id])
+  lineManager     User?     @relation("LineManager", fields: [lineManagerId], references: [id])
+  subordinates    User[]    @relation("LineManager")
+  backupApprover  User?     @relation("BackupApprover", fields: [backupApproverId], references: [id])
+  backupFor       User[]    @relation("BackupApprover")
+
+  // Authored entities
+  shiftsOpened        ShiftReport[]          @relation("ShiftOpenedBy")
+  shiftsClosed        ShiftReport[]          @relation("ShiftClosedBy")
+  invoicesSubmitted   Invoice[]              @relation("InvoiceSubmitter")
+  invoicesApproved    Invoice[]              @relation("InvoiceApprover")
+  expensesRequested   Expense[]              @relation("ExpenseRequester")
+  approvalSteps       ApprovalStep[]
+  pricesCreated       FuelPrice[]            @relation("PriceCreator")
+  pricesApproved      FuelPrice[]            @relation("PriceApprover")
+  checklistsSubmitted ChecklistSubmission[]  @relation("ChecklistSubmitter")
+  checklistsValidated ChecklistSubmission[]  @relation("ChecklistValidator")
+  incidentsReported   Incident[]             @relation("IncidentReporter")
+  incidentsAssigned   Incident[]             @relation("IncidentAssignee")
+  replenishments      ReplenishmentRequest[] @relation("ReplenishmentRequester")
+  mailsAssigned       IncomingMail[]         @relation("MailAssignee")
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  fileUploads         FileUpload[]
+
+  @@index([assignedStationId])
+  @@index([email], map: "idx_active_users")
+  @@map("users")
+}
+
+model Station {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String    @unique
+  name      String
+  settings  Json      @default("{}")
+  isActive  Boolean   @default(true) @map("is_active")
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  users                User[]                 @relation("StationUsers")
+  tanks                Tank[]
+  pumps                Pump[]
+  shiftReports         ShiftReport[]
+  expenses             Expense[]
+  checklistSubmissions ChecklistSubmission[]
+  incidents            Incident[]
+  replenishments       ReplenishmentRequest[]
+  deliveries           FuelDelivery[]
+
+  @@map("stations")
+}
+
+model Tank {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId    String    @map("station_id") @db.Uuid
+  fuelType     FuelType  @map("fuel_type")
+  capacity     Decimal   @db.Decimal(19, 4)
+  currentLevel Decimal   @default(0) @map("current_level") @db.Decimal(19, 4)
+  version      Int       @default(1)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz()
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station      Station              @relation(fields: [stationId], references: [id], onDelete: Restrict)
+  pumps        Pump[]
+  shiftTankDips ShiftTankDip[]
+  compartments DeliveryCompartment[]
+
+  @@index([stationId])
+  @@map("tanks")
+}
+
+model Pump {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId String    @map("station_id") @db.Uuid
+  code      String
+  tankId    String    @map("tank_id") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station Station  @relation(fields: [stationId], references: [id], onDelete: Restrict)
+  tank    Tank     @relation(fields: [tankId], references: [id], onDelete: Restrict)
+  nozzles Nozzle[]
+
+  @@unique([stationId, code])
+  @@index([stationId])
+  @@map("pumps")
+}
+
+model Nozzle {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pumpId     String   @map("pump_id") @db.Uuid
+  side       NozzleSide
+  meterIndex Decimal  @default(0) @map("meter_index") @db.Decimal(19, 4)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  pump       Pump        @relation(fields: [pumpId], references: [id], onDelete: Restrict)
+  shiftSales ShiftSale[]
+
+  @@unique([pumpId, side])
+  @@map("nozzles")
+}
+
+// ─── SHIFT MANAGEMENT ───
+
+model ShiftReport {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId            String      @map("station_id") @db.Uuid
+  shiftDate            DateTime    @map("shift_date") @db.Date
+  shiftType            ShiftType   @map("shift_type")
+  status               ShiftStatus @default(OPEN)
+  totalRevenue         Decimal     @default(0) @map("total_revenue") @db.Decimal(19, 4)
+  cashVariance         Decimal     @default(0) @map("cash_variance") @db.Decimal(19, 4)
+  stockVariance        Decimal     @default(0) @map("stock_variance") @db.Decimal(19, 4)
+  appliedPriceSnapshot Json?       @map("applied_price_snapshot")
+  cashCounted          Decimal     @default(0) @map("cash_counted") @db.Decimal(19, 4)
+  cardAmount           Decimal     @default(0) @map("card_amount") @db.Decimal(19, 4)
+  expensesAmount       Decimal     @default(0) @map("expenses_amount") @db.Decimal(19, 4)
+  theoreticalCash      Decimal     @default(0) @map("theoretical_cash") @db.Decimal(19, 4)
+  justification        String?
+  idempotencyKey       String?     @unique @map("idempotency_key")
+  openedById           String      @map("opened_by") @db.Uuid
+  closedById           String?     @map("closed_by") @db.Uuid
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt            DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station   Station        @relation(fields: [stationId], references: [id])
+  openedBy  User           @relation("ShiftOpenedBy", fields: [openedById], references: [id])
+  closedBy  User?          @relation("ShiftClosedBy", fields: [closedById], references: [id])
+  sales     ShiftSale[]
+  tankDips  ShiftTankDip[]
+
+  @@unique([stationId, shiftDate, shiftType])
+  @@index([stationId, shiftDate(sort: Desc)], map: "idx_shifts_station_date")
+  @@map("shift_reports")
+}
+
+model ShiftSale {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shiftReportId String  @map("shift_report_id") @db.Uuid
+  nozzleId      String  @map("nozzle_id") @db.Uuid
+  openingIndex  Decimal @map("opening_index") @db.Decimal(19, 4)
+  closingIndex  Decimal? @map("closing_index") @db.Decimal(19, 4)
+  volumeSold    Decimal? @map("volume_sold") @db.Decimal(19, 4)
+  unitPrice     Decimal @map("unit_price") @db.Decimal(19, 4)
+  revenue       Decimal? @db.Decimal(19, 4)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  shiftReport ShiftReport @relation(fields: [shiftReportId], references: [id], onDelete: Cascade)
+  nozzle      Nozzle      @relation(fields: [nozzleId], references: [id])
+
+  @@map("shift_sales")
+}
+
+model ShiftTankDip {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shiftReportId String  @map("shift_report_id") @db.Uuid
+  tankId        String  @map("tank_id") @db.Uuid
+  openingLevel     Decimal  @map("opening_level") @db.Decimal(19, 4)
+  closingLevel     Decimal? @map("closing_level") @db.Decimal(19, 4)
+  deliveries       Decimal  @default(0) @db.Decimal(19, 4)
+  theoreticalStock Decimal? @map("theoretical_stock") @db.Decimal(19, 4)
+  stockVariance    Decimal? @map("stock_variance") @db.Decimal(19, 4)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  shiftReport ShiftReport @relation(fields: [shiftReportId], references: [id], onDelete: Cascade)
+  tank        Tank        @relation(fields: [tankId], references: [id])
+
+  @@map("shift_tank_dips")
+}
+
+// ─── PRICE MANAGEMENT ───
+
+model FuelPrice {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fuelType      FuelType    @map("fuel_type")
+  price         Decimal     @db.Decimal(19, 4)
+  effectiveDate DateTime    @map("effective_date") @db.Timestamptz()
+  status        PriceStatus @default(PENDING)
+  isActive      Boolean     @default(false) @map("is_active")
+  createdById   String      @map("created_by") @db.Uuid
+  approvedById  String?     @map("approved_by") @db.Uuid
+  approvedAt    DateTime?   @map("approved_at") @db.Timestamptz()
+  rejectedReason String?    @map("rejected_reason")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  createdBy  User  @relation("PriceCreator", fields: [createdById], references: [id])
+  approvedBy User? @relation("PriceApprover", fields: [approvedById], references: [id])
+
+  @@index([fuelType, effectiveDate(sort: Desc)])
+  @@index([status])
+  @@map("fuel_prices")
+}
+
+// ─── FINANCIAL ───
+
+model Supplier {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  taxId     String           @unique @map("tax_id")
+  email     String
+  phone     String
+  category  SupplierCategory
+  address   String?
+  isActive  Boolean          @default(true) @map("is_active")
+  deletedAt DateTime?        @map("deleted_at") @db.Timestamptz()
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  invoices Invoice[]
+
+  @@map("suppliers")
+}
+
+model Invoice {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierId         String        @map("supplier_id") @db.Uuid
+  invoiceNumber      String        @map("invoice_number")
+  amount             Decimal       @db.Decimal(19, 4)
+  currency           String        @default("XAF")
+  status             InvoiceStatus @default(DRAFT)
+  dueDate            DateTime      @map("due_date") @db.Date
+  fileUrl            String        @map("file_url")
+  proofOfPaymentUrl  String?       @map("proof_of_payment_url")
+  submittedById      String        @map("submitted_by") @db.Uuid
+  approvedById       String?       @map("approved_by") @db.Uuid
+  rejectionReason    String?       @map("rejection_reason")
+  idempotencyKey     String?       @unique @map("idempotency_key")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  supplier    Supplier       @relation(fields: [supplierId], references: [id])
+  submittedBy User           @relation("InvoiceSubmitter", fields: [submittedById], references: [id])
+  approvedBy  User?          @relation("InvoiceApprover", fields: [approvedById], references: [id])
+  approvals   ApprovalStep[] @relation("InvoiceApprovals")
+
+  @@unique([supplierId, invoiceNumber])
+  @@index([status])
+  @@map("invoices")
+}
+
+model Expense {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requesterId     String          @map("requester_id") @db.Uuid
+  stationId       String?         @map("station_id") @db.Uuid
+  title           String
+  amount          Decimal         @db.Decimal(19, 4)
+  category        ExpenseCategory
+  status          ExpenseStatus   @default(SUBMITTED)
+  rejectionReason String?         @map("rejection_reason")
+  disbursementMethod DisbursementMethod? @map("disbursement_method")
+  disbursedAt     DateTime?       @map("disbursed_at") @db.Timestamptz()
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  requester User           @relation("ExpenseRequester", fields: [requesterId], references: [id])
+  station   Station?       @relation(fields: [stationId], references: [id])
+  approvals ApprovalStep[] @relation("ExpenseApprovals")
+
+  @@index([stationId])
+  @@index([status])
+  @@map("expenses")
+}
+
+model ApprovalStep {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType ApprovalEntityType @map("entity_type")
+  invoiceId  String?            @map("invoice_id") @db.Uuid
+  expenseId  String?            @map("expense_id") @db.Uuid
+  role       String
+  userId     String             @map("user_id") @db.Uuid
+  action     ApprovalAction
+  comment    String?
+  actedAt    DateTime           @default(now()) @map("acted_at") @db.Timestamptz()
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id])
+  invoice Invoice? @relation("InvoiceApprovals", fields: [invoiceId], references: [id])
+  expense Expense? @relation("ExpenseApprovals", fields: [expenseId], references: [id])
+
+  @@map("approval_steps")
+}
+
+// ─── SUPPLY CHAIN ───
+
+model ReplenishmentRequest {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId       String              @map("station_id") @db.Uuid
+  fuelType        FuelType            @map("fuel_type")
+  requestedVolume Decimal             @map("requested_volume") @db.Decimal(19, 4)
+  status          ReplenishmentStatus @default(DRAFT)
+  requestedById   String              @map("requested_by") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station     Station        @relation(fields: [stationId], references: [id])
+  requestedBy User           @relation("ReplenishmentRequester", fields: [requestedById], references: [id])
+  deliveries  FuelDelivery[]
+
+  @@index([stationId])
+  @@map("replenishment_requests")
+}
+
+model FuelDelivery {
+  id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId               String         @map("station_id") @db.Uuid
+  replenishmentRequestId  String?        @map("replenishment_request_id") @db.Uuid
+  blNumber                String         @map("bl_number")
+  blTotalVolume           Decimal?       @map("bl_total_volume") @db.Decimal(19, 4)
+  truckPlate              String         @map("truck_plate")
+  driverName              String         @map("driver_name")
+  status                  DeliveryStatus @default(IN_PROGRESS)
+  globalVariance          Decimal?       @map("global_variance") @db.Decimal(19, 4)
+  startedAt               DateTime?      @map("started_at") @db.Timestamptz()
+  completedAt             DateTime?      @map("completed_at") @db.Timestamptz()
+  createdAt               DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station              Station              @relation(fields: [stationId], references: [id])
+  replenishmentRequest ReplenishmentRequest? @relation(fields: [replenishmentRequestId], references: [id])
+  compartments         DeliveryCompartment[]
+
+  @@index([stationId])
+  @@map("fuel_deliveries")
+}
+
+model DeliveryCompartment {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deliveryId       String            @map("delivery_id") @db.Uuid
+  tankId           String            @map("tank_id") @db.Uuid
+  fuelType         FuelType          @map("fuel_type")
+  blVolume         Decimal           @map("bl_volume") @db.Decimal(19, 4)
+  openingDip       Decimal?          @map("opening_dip") @db.Decimal(19, 4)
+  closingDip       Decimal?          @map("closing_dip") @db.Decimal(19, 4)
+  physicalReceived Decimal?          @map("physical_received") @db.Decimal(19, 4)
+  variance         Decimal?          @db.Decimal(19, 4)
+  status           CompartmentStatus?
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  delivery FuelDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  tank     Tank         @relation(fields: [tankId], references: [id])
+
+  @@map("delivery_compartments")
+}
+
+// ─── CHECKLIST & INCIDENTS ───
+
+model ChecklistTemplate {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  version    Int       @default(1)
+  categories Json
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  submissions ChecklistSubmission[]
+
+  @@map("checklist_templates")
+}
+
+model ChecklistSubmission {
+  id              String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId       String                    @map("station_id") @db.Uuid
+  templateId      String                    @map("template_id") @db.Uuid
+  templateVersion Int                       @map("template_version")
+  shiftDate       DateTime                  @map("shift_date") @db.Date
+  shiftType       ShiftType                 @map("shift_type")
+  submittedById   String                    @map("submitted_by") @db.Uuid
+  validatedById   String?                   @map("validated_by") @db.Uuid
+  items           Json
+  computedScore   Int                       @default(0) @map("computed_score")
+  status          ChecklistSubmissionStatus  @default(DRAFT)
+  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime                  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station     Station            @relation(fields: [stationId], references: [id])
+  template    ChecklistTemplate  @relation(fields: [templateId], references: [id])
+  submittedBy User               @relation("ChecklistSubmitter", fields: [submittedById], references: [id])
+  validatedBy User?              @relation("ChecklistValidator", fields: [validatedById], references: [id])
+  incidents   Incident[]
+
+  @@unique([stationId, shiftDate, shiftType])
+  @@map("checklist_submissions")
+}
+
+model Incident {
+  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stationId              String         @map("station_id") @db.Uuid
+  checklistSubmissionId  String?        @map("checklist_submission_id") @db.Uuid
+  category               String
+  description            String
+  photoUrl               String?        @map("photo_url")
+  status                 IncidentStatus @default(OPEN)
+  assignedToId           String?        @map("assigned_to") @db.Uuid
+  resolvedAt             DateTime?      @map("resolved_at") @db.Timestamptz()
+  resolutionNote         String?        @map("resolution_note")
+  reportedById           String         @map("reported_by") @db.Uuid
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt              DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  station              Station              @relation(fields: [stationId], references: [id])
+  checklistSubmission  ChecklistSubmission?  @relation(fields: [checklistSubmissionId], references: [id])
+  assignedTo           User?                @relation("IncidentAssignee", fields: [assignedToId], references: [id])
+  reportedBy           User                 @relation("IncidentReporter", fields: [reportedById], references: [id])
+
+  @@index([stationId])
+  @@index([status])
+  @@map("incidents")
+}
+
+// ─── INCOMING MAIL ───
+
+model IncomingMail {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sender              String
+  subject             String
+  receivedAt          DateTime     @map("received_at") @db.Timestamptz()
+  priority            MailPriority
+  recipientDepartment String       @map("recipient_department")
+  deadline            DateTime     @db.Timestamptz()
+  assignedToId        String?      @map("assigned_to") @db.Uuid
+  status              MailStatus   @default(RECEIVED)
+  slaState            SlaState     @default(ON_TIME) @map("sla_state")
+  attachmentUrl       String?      @map("attachment_url")
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  assignedTo User? @relation("MailAssignee", fields: [assignedToId], references: [id])
+
+  @@index([status])
+  @@map("incoming_mails")
+}
+
+// ─── NOTIFICATIONS ───
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false) @map("is_read")
+  readAt    DateTime? @map("read_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ─── AUDIT LOG ───
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timestamp  DateTime @default(now()) @db.Timestamptz()
+  userId     String   @map("user_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  changes    Json?
+  ipAddress  String?  @map("ip_address")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ─── REVOKED TOKENS ───
+
+model RevokedToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jti       String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@index([expiresAt])
+  @@map("revoked_tokens")
+}
+
+// ─── JOB QUEUE (for BullMQ fallback / email tracking) ───
+
+model Job {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        String
+  payload     Json
+  status      JobStatus @default(PENDING)
+  scheduledAt DateTime  @map("scheduled_at") @db.Timestamptz()
+  processedAt DateTime? @map("processed_at") @db.Timestamptz()
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@index([status, scheduledAt])
+  @@map("jobs")
+}
+
+// ─── FILE UPLOADS ───
+
+model FileUpload {
+  id           String   @id @db.Uuid
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  size         Int
+  path         String
+  url          String
+  uploadedById String   @map("uploaded_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@map("file_uploads")
+}

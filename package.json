@@ -1,0 +1,38 @@
+{
+  "name": "alcom-v3",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:migrate": "pnpm --filter @alcom/api db:migrate",
+    "db:migrate:prod": "pnpm --filter @alcom/api db:migrate:prod",
+    "db:seed": "pnpm --filter @alcom/api db:seed",
+    "db:seed:prod": "pnpm --filter @alcom/api db:seed:prod",
+    "db:studio": "pnpm --filter @alcom/api db:studio",
+    "db:generate": "pnpm --filter @alcom/api db:generate"
+  },
+  "devDependencies": {
+    "eslint": "^10.0.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.0",
+    "typescript": "^5.5.0"
+  },
+  "packageManager": "pnpm@10.29.3",
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "msgpackr-extract",
+      "prisma"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+node_modules
+.next
+dist
+.turbo
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+.git
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

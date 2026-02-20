@@ -1,0 +1,10 @@
+<h2>Mise à jour facture</h2>
+<p>Bonjour {{name}},</p>
+<p>La facture <strong>#{{invoiceNumber}}</strong> est maintenant <strong>{{status}}</strong>.</p>
+<p>Montant: {{amount}} XAF</p>
+{{#if reason}}
+<p>Motif: {{reason}}</p>
+{{/if}}
+{{#if link}}
+<p>Voir la facture: <a href="{{link}}">{{link}}</a></p>
+{{/if}}

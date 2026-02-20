@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: alcom
+      POSTGRES_PASSWORD: alcom_dev_2024
+      POSTGRES_DB: alcom_v4
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U alcom -d alcom_v4" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    container_name: v4local-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "4004:4000"
+    environment:
+      - DATABASE_URL=postgresql://alcom:alcom_dev_2024@postgres:5432/alcom_v4?schema=public
+      - PORT=4000
+      - NODE_ENV=production
+      - FRONTEND_URL=http://localhost:3004
+      - JWT_SECRET=change-this-to-a-random-64-char-string
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Wait for DB to be ready, run migrations, then start the app
+    command: sh -c "cd apps/api && pnpm exec prisma migrate deploy --schema=prisma/schema.prisma && pnpm run dev"
+
+  web:
+    container_name: v4local-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:4004
+    ports:
+      - "3004:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4004
+      - API_URL=http://api:4000
+      - PORT=3000
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
