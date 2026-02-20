@@ -32,7 +32,8 @@
     "replenishment": "Approvisionnement",
     "deliveries": "Livraisons",
     "notifications": "Notifications",
-    "suppliers": "Fournisseurs"
+    "suppliers": "Fournisseurs",
+    "help": "Aide"
   },
   "Users": {
     "title": "Utilisateurs",
@@ -900,6 +901,188 @@
     "POMPISTE": "Pompiste",
     "LOGISTICS": "Logistique",
     "DCO": "Directeur commercial"
+  },
+  "Help": {
+    "title": "Aide & Documentation",
+    "subtitle": "Guide complet des opérations Alcom V4",
+    "searchPlaceholder": "Rechercher dans l'aide...",
+    "resultsFound": "{count} résultats trouvés",
+    "clearSearch": "Effacer la recherche",
+    "quickNav": "Navigation rapide",
+    "noResults": "Aucun résultat trouvé. Essayez d'autres mots-clés.",
+    "footer": "Pour un support supplémentaire, contactez votre administrateur système",
+    "workflowTitle": "Workflow en 4 étapes",
+    "calculationsTitle": "Calculs clés",
+    "relatedRoutesTitle": "Pages associées",
+    "modules": {
+      "stations": {
+        "title": "Gestion des Stations & Infrastructure",
+        "step1Title": "Configuration",
+        "step1Desc": "Établir les définitions de stations, définir les codes opérationnels et les paramètres de base. Définir les cuves avec capacités maximales et types de carburant.",
+        "step2Title": "Configuration des équipements",
+        "step2Desc": "Allouer les pompes aux cuves. Configurer les pistolets (Côté A/B) et attribuer les index de base pour le suivi du flux de carburant.",
+        "step3Title": "Vérification",
+        "step3Desc": "Les chefs de station vérifient les identifiants physiques des cuves et les codes des pompes par rapport au système pour éviter les erreurs de distribution.",
+        "step4Title": "Surveillance active",
+        "step4Desc": "Les cuves suivent les niveaux actuels en continu, servant de données de base pour les écarts de quart et les réapprovisionnements."
+      },
+      "shifts": {
+        "title": "Gestion des Quarts",
+        "step1Title": "Ouverture de quart",
+        "step1Desc": "Initier un rapport de quart avec statut OUVERT. Le système enregistre les niveaux d'ouverture physiques des cuves et les index d'ouverture des pistolets.",
+        "step2Title": "Enregistrement des ventes & jaugeages",
+        "step2Desc": "Enregistrer les index des pistolets en continu, liant les ventes aux pistolets actifs. Saisir les mesures de jauge des cuves.",
+        "step3Title": "Clôture de quart & déclaration",
+        "step3Desc": "Le superviseur saisit le total de l'espèce comptée, les paiements par carte et les dépenses enregistrées. Le système calcule automatiquement l'espèce théorique et les écarts de stock.",
+        "step4Title": "Validation & archivage",
+        "step4Desc": "Le quart passe au statut FERMÉ (puis VERROUILLÉ), verrouillant toutes les données et photographiant les prix du carburant appliqués pour éviter toute modification rétroactive."
+      },
+      "prices": {
+        "title": "Gestion des Prix",
+        "step1Title": "Proposition de prix",
+        "step1Desc": "Créer un enregistrement de prix de carburant pour un type de carburant spécifique, en spécifiant une date d'effet future et un prix exact. Le statut est défini sur EN ATTENTE.",
+        "step2Title": "Révision",
+        "step2Desc": "Les approbateurs sont notifiés pour examiner le tarif proposé. Ils peuvent vérifier les variations historiques et les conditions du marché.",
+        "step3Title": "Workflow d'approbation / rejet",
+        "step3Desc": "En cas de rejet, une raison de rejet doit être fournie. En cas d'approbation, le statut devient APPROUVÉ.",
+        "step4Title": "Activation & synchronisation",
+        "step4Desc": "À la date d'effet exacte, le système bascule automatiquement isActive sur true, prenant effet sur tous les calculs de point de vente de la station."
+      },
+      "expenses": {
+        "title": "Gestion des Dépenses",
+        "step1Title": "Soumission",
+        "step1Desc": "Soumettre une demande de dépense contenant la catégorie, le périmètre de la station et le montant. Nécessite des pièces justificatives. Statut : SOUMIS.",
+        "step2Title": "Autorisation initiale",
+        "step2Desc": "Le statut passe à EN ATTENTE MANAGER. Les managers locaux vérifient la nécessité opérationnelle de la dépense.",
+        "step3Title": "Approbation financière",
+        "step3Desc": "Le statut passe à EN ATTENTE FINANCE. L'équipe financière valide l'allocation budgétaire. Approbation à plusieurs niveaux basée sur les seuils.",
+        "step4Title": "Décaissement & réconciliation",
+        "step4Desc": "Une fois APPROUVÉ, l'argent est libéré via PETITE CAISSE ou VIREMENT BANCAIRE. L'enregistrement est estampillé avec la date de décaissement."
+      },
+      "invoices": {
+        "title": "Gestion des Fournisseurs & Factures",
+        "step1Title": "Intégration fournisseur",
+        "step1Desc": "Les fournisseurs sont créés avec un NIU vérifié et des informations de contact.",
+        "step2Title": "Réception & saisie de facture",
+        "step2Desc": "L'opérateur numérise une facture fournisseur en créant une facture. Les détails incluent le montant, la devise, la date d'échéance et l'URL de stockage du fichier. Le statut est BROUILLON.",
+        "step3Title": "Workflow d'approbation multi-niveaux",
+        "step3Desc": "Validations séquentielles via les étapes d'approbation. Les factures sont soumises à validation (EN ATTENTE D'APPROBATION). Si données manquantes, le statut est REJETÉ.",
+        "step4Title": "Exécution du paiement",
+        "step4Desc": "Le service financier émet le paiement en téléchargeant une URL de preuve de paiement. Le statut est définitivement verrouillé sur PAYÉ."
+      },
+      "supply": {
+        "title": "Chaîne d'Approvisionnement & Livraisons",
+        "step1Title": "Réquisition",
+        "step1Desc": "Le chef de station crée une demande de réapprovisionnement indiquant le volume demandé et le type de carburant. Le DCO valide la demande (Statut : VALIDÉ → COMMANDÉ).",
+        "step2Title": "Expédition / Lancement de livraison",
+        "step2Desc": "La logistique achemine un camion, capturant le bon de livraison (BL), la plaque du camion et le nom du chauffeur. Un objet de livraison de carburant est généré avec le statut EN COURS.",
+        "step3Title": "Déchargement physique & jaugeage",
+        "step3Desc": "La station évalue les compartiments de livraison. Capture la jauge d'ouverture et la jauge de fermeture par cuve. Calcule le physique reçu réel par rapport au volume BL.",
+        "step4Title": "Validation des écarts",
+        "step4Desc": "Si les volumes correspondent, la livraison est VALIDÉE. Si l'écart global dépasse les seuils, le statut est signalé comme CONTESTÉ pour un audit logistique supplémentaire."
+      },
+      "checklists": {
+        "title": "Checklists & Contrôle Qualité",
+        "step1Title": "Définition de modèle",
+        "step1Desc": "Le siège définit des modèles de checklist avec des éléments booléens et structurels catégorisés dynamiquement (par exemple, hygiène des pompes, extincteurs).",
+        "step2Title": "Exécution de soumission",
+        "step2Desc": "Les utilisateurs finaux soumettent une soumission de checklist liée à un quart désigné. Les réponses sont stockées en JSON, déterminant les statistiques CONFORME ou NON CONFORME.",
+        "step3Title": "Notation automatisée & validation",
+        "step3Desc": "Le système calcule un score de conformité automatisé. Un superviseur ou chef de station enquête, puis modifie le statut en VALIDÉ ou REJETÉ.",
+        "step4Title": "Configuration de remédiation",
+        "step4Desc": "Les éléments marqués NON CONFORME se connectent automatiquement au module Incident pour forcer les corrections opérationnelles."
+      },
+      "incidents": {
+        "title": "Gestion des Incidents",
+        "step1Title": "Signalement d'incident",
+        "step1Desc": "Généré manuellement ou automatiquement (via des checklists échouées). Soumet la catégorie, la description et les preuves photo. Statut défini sur OUVERT.",
+        "step2Title": "Affectation & triage",
+        "step2Desc": "L'administrateur affecte l'incident à une équipe interne pertinente ou à un fournisseur externe. Le statut passe à EN COURS.",
+        "step3Title": "Résolution & preuve",
+        "step3Desc": "L'utilisateur affecté fournit une note de résolution (par exemple, pompe recalibrée, pièce remplacée).",
+        "step4Title": "Clôture",
+        "step4Desc": "Le rapporteur ou le manager vérifie la correction et change logiquement le statut en RÉSOLU puis verrouillé sur FERMÉ."
+      },
+      "mails": {
+        "title": "Gestion du Courrier Entrant",
+        "step1Title": "Enregistrement du courrier",
+        "step1Desc": "Le service courrier interne numérise un courrier entrant, capturant l'expéditeur, le sujet et les scans physiques (URL de pièce jointe).",
+        "step2Title": "Affectation & définition SLA",
+        "step2Desc": "Le courrier est étiqueté à un département destinataire et à un individu. La priorité (NORMAL, URGENT) attribue des délais stricts automatisés.",
+        "step3Title": "Suivi & réponse",
+        "step3Desc": "L'opérateur définit le statut sur EN COURS. Les notifications sont générées automatiquement si l'état SLA atteint BIENTÔT DÛ ou EN RETARD.",
+        "step4Title": "Archivage",
+        "step4Desc": "Le courrier avec réponse est marqué comme RÉPONDU et clôturé dans ARCHIVÉ."
+      }
+    },
+    "calculations": {
+      "volumeSold": "Volume vendu",
+      "volumeSoldFormula": "Index de fermeture - Index d'ouverture",
+      "volumeSoldExample": "{\"inputs\":{\"Index de fermeture\":15000,\"Index d'ouverture\":14200},\"output\":\"800 L\"}",
+      "revenue": "Revenu",
+      "revenueFormula": "Volume vendu × Prix unitaire",
+      "revenueExample": "{\"inputs\":{\"Volume\":800,\"Prix\":650},\"output\":\"520 000 XAF\"}",
+      "cashVariance": "Écart de caisse",
+      "cashVarianceFormula": "Espèce comptée réelle - Espèce théorique",
+      "cashVarianceExample": "{\"inputs\":{\"Espèce réelle\":518000,\"Espèce théorique\":520000},\"output\":\"-2 000 XAF\"}",
+      "stockVariance": "Écart de stock",
+      "stockVarianceFormula": "Niveau physique - (Ouverture + Livraisons - Ventes)",
+      "stockVarianceExample": "{\"inputs\":{\"Physique\":12500,\"Théorique\":12450},\"output\":\"+50 L\"}"
+    },
+    "routes": {
+      "stations": {
+        "list": "Voir toutes les stations",
+        "new": "Créer une nouvelle station",
+        "details": "Voir les détails et paramètres de la station"
+      },
+      "shifts": {
+        "list": "Voir tous les rapports de quart",
+        "open": "Ouvrir un nouveau quart",
+        "details": "Voir les détails du quart",
+        "close": "Fermer un quart ouvert"
+      },
+      "prices": {
+        "list": "Voir les prix actifs",
+        "new": "Proposer un nouveau prix",
+        "history": "Voir l'historique des prix"
+      },
+      "expenses": {
+        "list": "Voir toutes les dépenses",
+        "new": "Soumettre une nouvelle dépense",
+        "details": "Voir les détails et approbations de la dépense"
+      },
+      "invoices": {
+        "list": "Voir toutes les factures",
+        "new": "Soumettre une nouvelle facture",
+        "details": "Voir les détails et approbations de la facture"
+      },
+      "suppliers": {
+        "list": "Gérer les fournisseurs"
+      },
+      "replenishment": {
+        "list": "Voir les demandes de réapprovisionnement",
+        "new": "Créer une nouvelle demande de réapprovisionnement"
+      },
+      "deliveries": {
+        "list": "Voir les livraisons de carburant",
+        "new": "Enregistrer une nouvelle livraison de carburant"
+      },
+      "checklists": {
+        "list": "Voir les soumissions de checklist",
+        "new": "Soumettre une nouvelle checklist",
+        "templates": "Gérer les modèles de checklist"
+      },
+      "incidents": {
+        "list": "Voir tous les incidents",
+        "new": "Signaler un nouvel incident",
+        "details": "Voir les détails de l'incident"
+      },
+      "mails": {
+        "list": "Voir les courriers entrants",
+        "new": "Enregistrer un nouveau courrier",
+        "details": "Voir les détails du courrier"
+      }
+    }
   },
   "Errors": {
     "generic": "Une erreur est survenue",

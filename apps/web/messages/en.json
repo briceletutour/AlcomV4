@@ -902,6 +902,188 @@
     "LOGISTICS": "Logistics",
     "DCO": "Commercial Director"
   },
+  "Help": {
+    "title": "Help & Documentation",
+    "subtitle": "Complete guide to Alcom V4 operations",
+    "searchPlaceholder": "Search help topics...",
+    "resultsFound": "{count} results found",
+    "clearSearch": "Clear search",
+    "quickNav": "Quick Navigation",
+    "noResults": "No results found. Try different keywords.",
+    "footer": "For additional support, contact your system administrator",
+    "workflowTitle": "4-Step Workflow",
+    "calculationsTitle": "Key Calculations",
+    "relatedRoutesTitle": "Related Pages",
+    "modules": {
+      "stations": {
+        "title": "Station & Infrastructure Management",
+        "step1Title": "Configuration",
+        "step1Desc": "Establish station definitions, set operational codes and basic settings. Define tanks with maximum capacities and fuel types.",
+        "step2Title": "Equipment Setup",
+        "step2Desc": "Allocate pumps to tanks. Configure nozzles (Side A/B) and assign baseline meter index values for tracking fuel flow.",
+        "step3Title": "Verification",
+        "step3Desc": "Station managers cross-verify physical tank IDs and pump codes against the system to prevent dispatch errors.",
+        "step4Title": "Active Monitoring",
+        "step4Desc": "Tanks track current levels continuously, serving as foundational data for shift variances and replenishments."
+      },
+      "shifts": {
+        "title": "Shift Management",
+        "step1Title": "Shift Opening",
+        "step1Desc": "Initiate a shift report with OPEN status. System records physical opening levels of tanks and opening indexes for nozzles.",
+        "step2Title": "Sales & Dips Recording",
+        "step2Desc": "Record nozzle indexes continuously, linking sales to active nozzles. Enter physical tank dip measurements.",
+        "step3Title": "Shift Closure & Declaration",
+        "step3Desc": "Supervisor inputs total counted cash, card payments, and recorded expenses. System automatically computes theoretical cash and stock variances.",
+        "step4Title": "Validation & Archiving",
+        "step4Desc": "Shift moves to CLOSED status (and eventually LOCKED), locking all data and snapshotting applied fuel prices to prevent retroactive alteration."
+      },
+      "prices": {
+        "title": "Price Management",
+        "step1Title": "Price Proposal",
+        "step1Desc": "Create a fuel price record for a specific fuel type, specifying a future effective date and exact price. Status is set to PENDING.",
+        "step2Title": "Review",
+        "step2Desc": "Approvers are notified to review the proposed rate. They can check historical variations and market conditions.",
+        "step3Title": "Approval / Rejection Workflow",
+        "step3Desc": "If rejected, a rejection reason must be provided. If approved, status becomes APPROVED.",
+        "step4Title": "Activation & Synchronization",
+        "step4Desc": "At the exact effective date, the system automatically toggles isActive to true, taking effect across all station Point-of-Sale calculations."
+      },
+      "expenses": {
+        "title": "Expenses Management",
+        "step1Title": "Submission",
+        "step1Desc": "Submit an expense request containing category, station scope, and amount. Requires supporting attachments. Status: SUBMITTED.",
+        "step2Title": "Initial Clearance",
+        "step2Desc": "Status moves to PENDING_MANAGER. Local managers vet the operational necessity of the expense.",
+        "step3Title": "Financial Approval",
+        "step3Desc": "Status moves to PENDING_FINANCE. Finance team validates the budget allocation. Multi-tier approval based on thresholds.",
+        "step4Title": "Disbursement & Reconciliation",
+        "step4Desc": "Once APPROVED, cash is released via PETTY_CASH or BANK_TRANSFER. Record stamped with disbursement date."
+      },
+      "invoices": {
+        "title": "Supplier & Invoice Management",
+        "step1Title": "Supplier / Vendor Onboarding",
+        "step1Desc": "Vendors are created with verified tax ID and contact information.",
+        "step2Title": "Invoice Reception & Capture",
+        "step2Desc": "Operator digitizes a supplier bill creating an invoice. Details include amount, currency, due date, and file storage URL. Status is DRAFT.",
+        "step3Title": "Multi-Level Approval Workflow",
+        "step3Desc": "Sequential validations via approval steps. Invoices undergo validation (PENDING_APPROVAL). If missing data, status is REJECTED back to draft.",
+        "step4Title": "Payment Execution",
+        "step4Desc": "Finance issues payment, uploading a proof of payment URL. Status is conclusively locked to PAID."
+      },
+      "supply": {
+        "title": "Supply Chain & Fuel Deliveries",
+        "step1Title": "Requisition",
+        "step1Desc": "Station manager creates a replenishment request denoting requested volume and fuel type. DCO validates the request (Status: VALIDATED → ORDERED).",
+        "step2Title": "Dispatch / Delivery Initiation",
+        "step2Desc": "Logistics routes a truck, capturing Bill of Lading (BL), truck plate, and driver name. A fuel delivery object is generated with status IN_PROGRESS.",
+        "step3Title": "Physical Offloading & Dipping",
+        "step3Desc": "Station evaluates delivery compartments. Captures opening dip and closing dip per tank. Calculates actual physical received versus BL volume.",
+        "step4Title": "Variance Validation",
+        "step4Desc": "If volumes match, delivery is VALIDATED. If global variance exceeds thresholds, status is flagged as DISPUTED for further logistical auditing."
+      },
+      "checklists": {
+        "title": "Checklists & Quality Control",
+        "step1Title": "Template Definition",
+        "step1Desc": "HQ defines checklist templates with dynamically categorized Boolean and structural items (e.g., pump hygiene, fire extinguishers).",
+        "step2Title": "Submission Execution",
+        "step2Desc": "End-users submit a checklist submission linked to a designated shift. Answers are stored as JSON, determining CONFORME or NON_CONFORME stats.",
+        "step3Title": "Automated Scoring & Validation",
+        "step3Desc": "System computes an automated compliance score. A supervisor or station manager investigates, then alters status to VALIDATED or REJECTED.",
+        "step4Title": "Remediation Setup",
+        "step4Desc": "Elements marked NON_CONFORME automatically bridge into the Incident module to force operational fixes."
+      },
+      "incidents": {
+        "title": "Incident Management",
+        "step1Title": "Incident Reporting",
+        "step1Desc": "Generated manually or automatically (via failed checklists). Submits category, description, and photo evidence. Status set to OPEN.",
+        "step2Title": "Assignment & Triaging",
+        "step2Desc": "Administrator assigns the incident to a relevant internal team or external supplier. Status updates to IN_PROGRESS.",
+        "step3Title": "Resolution & Proof",
+        "step3Desc": "Assigned user provides a resolution note (e.g., pump recalibrated, part replaced).",
+        "step4Title": "Closure",
+        "step4Desc": "Reporter or manager verifies the fix, and logically changes status to RESOLVED and then locked to CLOSED."
+      },
+      "mails": {
+        "title": "Incoming Mails Management",
+        "step1Title": "Mail Registry",
+        "step1Desc": "Internal mail desk digitizes an incoming mail, capturing sender, subject, and physical scans (attachment URL).",
+        "step2Title": "Assignment & SLA Definition",
+        "step2Desc": "Mail is tagged to a recipient department and individual. Priority (NORMAL, URGENT) assigns automated strict deadlines.",
+        "step3Title": "Tracking & Response",
+        "step3Desc": "Operator sets status to IN_PROGRESS. Notifications generated automatically if SLA state hits DUE_SOON or OVERDUE.",
+        "step4Title": "Archiving",
+        "step4Desc": "Responded mail is marked as RESPONDED and closed out into ARCHIVED."
+      }
+    },
+    "calculations": {
+      "volumeSold": "Volume Sold",
+      "volumeSoldFormula": "Closing Index - Opening Index",
+      "volumeSoldExample": "{\"inputs\":{\"Closing Index\":15000,\"Opening Index\":14200},\"output\":\"800 L\"}",
+      "revenue": "Revenue",
+      "revenueFormula": "Volume Sold × Unit Price",
+      "revenueExample": "{\"inputs\":{\"Volume\":800,\"Price\":650},\"output\":\"520,000 XAF\"}",
+      "cashVariance": "Cash Variance",
+      "cashVarianceFormula": "Actual Cash Counted - Theoretical Cash",
+      "cashVarianceExample": "{\"inputs\":{\"Actual Cash\":518000,\"Theoretical Cash\":520000},\"output\":\"-2,000 XAF\"}",
+      "stockVariance": "Stock Variance",
+      "stockVarianceFormula": "Physical Level - (Opening + Deliveries - Sales)",
+      "stockVarianceExample": "{\"inputs\":{\"Physical\":12500,\"Theoretical\":12450},\"output\":\"+50 L\"}"
+    },
+    "routes": {
+      "stations": {
+        "list": "View all stations",
+        "new": "Create a new station",
+        "details": "View station details and settings"
+      },
+      "shifts": {
+        "list": "View all shift reports",
+        "open": "Open a new shift",
+        "details": "View shift details",
+        "close": "Close an open shift"
+      },
+      "prices": {
+        "list": "View active prices",
+        "new": "Propose a new price",
+        "history": "View price history"
+      },
+      "expenses": {
+        "list": "View all expenses",
+        "new": "Submit a new expense",
+        "details": "View expense details and approvals"
+      },
+      "invoices": {
+        "list": "View all invoices",
+        "new": "Submit a new invoice",
+        "details": "View invoice details and approvals"
+      },
+      "suppliers": {
+        "list": "Manage suppliers"
+      },
+      "replenishment": {
+        "list": "View replenishment requests",
+        "new": "Create a new replenishment request"
+      },
+      "deliveries": {
+        "list": "View fuel deliveries",
+        "new": "Log a new fuel delivery"
+      },
+      "checklists": {
+        "list": "View checklist submissions",
+        "new": "Submit a new checklist",
+        "templates": "Manage checklist templates"
+      },
+      "incidents": {
+        "list": "View all incidents",
+        "new": "Report a new incident",
+        "details": "View incident details"
+      },
+      "mails": {
+        "list": "View incoming mails",
+        "new": "Register a new mail",
+        "details": "View mail details"
+      }
+    }
+  },
   "Errors": {
     "generic": "An error occurred",
     "networkError": "Server connection error",

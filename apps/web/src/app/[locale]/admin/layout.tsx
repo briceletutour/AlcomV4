@@ -5,7 +5,7 @@ import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Users, LogOut, LayoutDashboard, Fuel, CalendarClock, DollarSign, Truck, Package, Bell, Mail, Receipt, ClipboardCheck, AlertTriangle } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Fuel, CalendarClock, DollarSign, Truck, Package, Bell, Mail, Receipt, ClipboardCheck, AlertTriangle, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
@@ -31,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/supply/replenishment', labelKey: 'replenishment', icon: Package },
     { href: '/admin/supply/deliveries', labelKey: 'deliveries', icon: Truck },
     { href: '/admin/notifications', labelKey: 'notifications', icon: Bell },
+    { href: '/admin/help', labelKey: 'help', icon: HelpCircle },
   ];
 
   return (
