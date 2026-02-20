@@ -1,0 +1,67 @@
+# Vercel Ignore - Files to exclude from deployment
+
+# Backend API (not deployed to Vercel)
+apps/api
+
+# Docker files
+docker-compose.yml
+docker-compose.prod.yml
+docker-deploy.sh
+Dockerfile
+.dockerignore
+DOCKER_DEPLOYMENT.md
+QUICK_START_DOCKER.md
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.docker
+.env.production
+
+# Development
+node_modules
+.pnpm-store
+.turbo
+
+# Testing
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test/**
+**/tests/**
+**/__tests__/**
+
+# Documentation
+README.md
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads (if stored locally)
+uploads
+public/uploads

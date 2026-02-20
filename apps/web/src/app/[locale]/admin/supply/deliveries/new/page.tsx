@@ -266,12 +266,6 @@ export default function NewDeliveryPage() {
         ))}
       </div>
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive max-w-2xl">
-          {error}
-        </div>
-      )}
-
       {/* Step Content */}
       <div className="max-w-2xl">
         {/* Step 1: Truck Info */}

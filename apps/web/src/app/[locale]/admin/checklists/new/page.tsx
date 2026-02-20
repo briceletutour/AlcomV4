@@ -197,13 +197,6 @@ export default function NewChecklistPage() {
         ))}
       </div>
 
-      {error && (
-        <div className="flex items-center gap-2 rounded-md bg-red-50 p-3 text-red-600">
-          <AlertCircle className="h-5 w-5" />
-          <span>{error}</span>
-        </div>
-      )}
-
       {/* Step 1: Select Template */}
       {step === 'template' && (
         <div className="space-y-4 rounded-xl border p-6">

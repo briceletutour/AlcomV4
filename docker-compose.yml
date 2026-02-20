@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: alcom-v4-postgres
     environment:
       POSTGRES_USER: alcom
       POSTGRES_PASSWORD: alcom_dev_2024
@@ -14,9 +15,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: alcom-v4-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
 
   api:
-    container_name: v4local-api
+    container_name: alcom-v4-api
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -24,18 +40,23 @@ services:
       - "4004:4000"
     environment:
       - DATABASE_URL=postgresql://alcom:alcom_dev_2024@postgres:5432/alcom_v4?schema=public
+      - REDIS_URL=redis://redis:6379
       - PORT=4000
       - NODE_ENV=production
       - FRONTEND_URL=http://localhost:3004
-      - JWT_SECRET=change-this-to-a-random-64-char-string
+      - JWT_SECRET=change-this-to-a-random-64-char-string-in-production
+      - LOG_LEVEL=info
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     # Wait for DB to be ready, run migrations, then start the app
-    command: sh -c "cd apps/api && pnpm exec prisma migrate deploy --schema=prisma/schema.prisma && pnpm run dev"
+    command: sh -c "cd apps/api && pnpm exec prisma migrate deploy --schema=prisma/schema.prisma && node_modules/.bin/tsx src/index.ts"
+    restart: unless-stopped
 
   web:
-    container_name: v4local-web
+    container_name: alcom-v4-web
     build:
       context: .
       dockerfile: apps/web/Dockerfile
@@ -49,6 +70,8 @@ services:
       - PORT=3000
     depends_on:
       - api
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:

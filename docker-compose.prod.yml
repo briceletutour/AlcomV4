@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: alcom-v4-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-alcom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-alcom_v4}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-alcom} -d ${POSTGRES_DB:-alcom_v4}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - alcom-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: alcom-v4-redis-prod
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: always
+    networks:
+      - alcom-network
+
+  api:
+    container_name: alcom-v4-api-prod
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "${API_PORT:-4000}:4000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-alcom}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-alcom_v4}?schema=public
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - PORT=4000
+      - NODE_ENV=production
+      - FRONTEND_URL=${FRONTEND_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "cd apps/api && pnpm exec prisma migrate deploy --schema=prisma/schema.prisma && node_modules/.bin/tsx src/index.ts"
+    restart: always
+    networks:
+      - alcom-network
+
+  web:
+    container_name: alcom-v4-web-prod
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - API_URL=http://api:4000
+      - PORT=3000
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - alcom-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  alcom-network:
+    driver: bridge
